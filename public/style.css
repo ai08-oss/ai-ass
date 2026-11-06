@@ -36,13 +36,158 @@ h2 {
   padding: 28px 20px 110px; /* 아래 여백: 채팅 아이콘에 가리지 않게 */
 }
 
+/* 위쪽 줄: 왼쪽 날짜·날씨, 오른쪽 코스피 */
+.top-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* 오른쪽 상단: 코스피 + 시가총액 상위 */
+.market {
+  width: 340px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.market-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.market-title {
+  font-weight: 700;
+  color: #1b2a4a;
+}
+
+.market-status {
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #eef1f5;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.market-status.open {
+  background: #e8f5ec;
+  color: #15803d;
+}
+
+.kospi-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 4px 0 10px;
+}
+
+.kospi-value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 국내 증시 표기: 상승 빨강, 하락 파랑 */
+.up { color: #d6273b; }
+.down { color: #1f5bd6; }
+.flat { color: #475569; }
+
+.chg {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.market-sub {
+  padding-top: 8px;
+  border-top: 1px solid #eef1f5;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.top-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.top-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.top-rank {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: #1b2a4a;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+}
+
+.top-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-name a {
+  color: #1b2a4a;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top-name a:hover {
+  text-decoration: underline;
+}
+
+.top-cap {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.top-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-foot {
+  margin-top: 8px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+  text-align: right;
+}
+
 /* 왼쪽 상단: 날짜·시간·날씨 */
 .today-bar {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
-  margin-bottom: 12px;
   padding: 8px 14px;
   border: 1px solid #e3e8ef;
   border-radius: 8px;
@@ -467,6 +612,10 @@ h2 {
   }
   .today-bar {
     display: flex;
+    width: 100%;
+  }
+  .market {
+    width: 100%;
   }
   .today-divider {
     display: none;

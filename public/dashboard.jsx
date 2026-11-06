@@ -300,6 +300,114 @@ function TodayBar() {
   );
 }
 
+// ===== 오른쪽 상단: 코스피 지수 + 시가총액 1~3위 =====
+const MARKET_URL = ['127.0.0.1', 'localhost'].includes(window.location.hostname)
+  ? 'http://127.0.0.1:3001/api/market'
+  : '/api/market';
+const MARKET_REFRESH_MS = 30 * 1000; // 30초마다 갱신
+
+const fmt = (n, digits = 0) =>
+  Number.isFinite(n)
+    ? n.toLocaleString('ko-KR', { minimumFractionDigits: digits, maximumFractionDigits: digits })
+    : '-';
+
+// 국내 증시 표기: 상승 ▲ 빨강, 하락 ▼ 파랑
+function Change({ dir, change, rate, digits = 0 }) {
+  const mark = dir === 'up' ? '▲' : dir === 'down' ? '▼' : '-';
+  return (
+    <span className={`chg ${dir}`}>
+      {mark} {fmt(Math.abs(change), digits)} ({rate > 0 ? '+' : ''}
+      {fmt(rate, 2)}%)
+    </span>
+  );
+}
+
+function MarketPanel() {
+  const [market, setMarket] = React.useState(null); // null: 불러오는 중, false: 실패
+
+  React.useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      if (document.hidden) return; // 다른 탭을 보고 있을 때는 쉬기
+      try {
+        const res = await fetch(MARKET_URL);
+        const d = await res.json();
+        if (!res.ok || !d.kospi) throw new Error('market');
+        if (alive) setMarket(d);
+      } catch {
+        if (alive) setMarket((prev) => prev || false);
+      }
+    };
+    load();
+    const t = setInterval(load, MARKET_REFRESH_MS);
+    document.addEventListener('visibilitychange', load);
+    return () => {
+      alive = false;
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', load);
+    };
+  }, []);
+
+  if (market === null) {
+    return <aside className="market"><span className="today-muted">시세 불러오는 중...</span></aside>;
+  }
+  if (market === false) {
+    return <aside className="market"><span className="today-muted">시세 정보를 불러오지 못했습니다</span></aside>;
+  }
+
+  const { kospi, top } = market;
+  const updated = new Date(market.fetchedAt).toLocaleTimeString('ko-KR', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
+  return (
+    <aside className="market" aria-label="코스피 지수와 시가총액 상위 종목">
+      <div className="market-head">
+        <span className="market-title">코스피</span>
+        <span className={`market-status ${kospi.open ? 'open' : ''}`}>
+          {kospi.open ? '장중' : '장 마감'}
+        </span>
+      </div>
+      <div className="kospi-row">
+        <strong className={`kospi-value ${kospi.direction}`}>{fmt(kospi.value, 2)}</strong>
+        <Change dir={kospi.direction} change={kospi.change} rate={kospi.rate} digits={2} />
+      </div>
+
+      <div className="market-sub">시가총액 상위</div>
+      <ol className="top-list">
+        {top.map((s) => (
+          <li key={s.rank}>
+            <span className="top-rank">{s.rank}</span>
+            <div className="top-name">
+              {s.code ? (
+                <a
+                  href={`https://finance.naver.com/item/main.naver?code=${s.code}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {s.name}
+                </a>
+              ) : (
+                s.name
+              )}
+              <span className="top-cap">{s.marketCap}</span>
+            </div>
+            <div className="top-price">
+              <b>{fmt(s.price)}원</b>
+              <Change dir={s.direction} change={s.change} rate={s.rate} />
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <div className="market-foot">
+        {updated} 기준{market.stale ? ' (최근 값)' : ''} · 30초마다 갱신 · 출처: 네이버 증권
+      </div>
+    </aside>
+  );
+}
+
 function Dashboard({ onAsk }) {
   const [filter, setFilter] = React.useState('all');
 
@@ -310,7 +418,11 @@ function Dashboard({ onAsk }) {
 
   return (
     <main className="dash">
-      <TodayBar />
+      {/* 위쪽: 왼쪽 날짜·날씨 / 오른쪽 코스피 */}
+      <div className="top-row">
+        <TodayBar />
+        <MarketPanel />
+      </div>
 
       <header className="dash-hero">
         <div>

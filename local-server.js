@@ -1,6 +1,7 @@
 // 내 PC용 서버 (Node.js 기본 http 모듈): http://127.0.0.1:3001
 import http from 'node:http';
 import { handleChat } from './lib/gemini.js';
+import { handleMarket } from './lib/market.js';
 
 const HOST = '127.0.0.1';
 const PORT = 3001;
@@ -8,7 +9,7 @@ const MAX_BODY_BYTES = 1024 * 1024; // 1MB
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
@@ -38,13 +39,22 @@ function readBody(req) {
 const server = http.createServer(async (req, res) => {
   const path = new URL(req.url, `http://${HOST}`).pathname;
 
-  if (path !== '/api/chat') {
+  if (path !== '/api/chat' && path !== '/api/market') {
     return sendJson(res, 404, { error: '찾을 수 없는 주소입니다.' });
   }
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204, CORS_HEADERS);
     return res.end();
+  }
+
+  // 코스피·시가총액 (GET)
+  if (path === '/api/market') {
+    if (req.method !== 'GET') {
+      return sendJson(res, 405, { error: 'GET 요청만 사용할 수 있습니다.' });
+    }
+    const { status, data } = await handleMarket();
+    return sendJson(res, status, data);
   }
 
   if (req.method !== 'POST') {
@@ -63,5 +73,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`로컬 서버 실행 중: http://${HOST}:${PORT}/api/chat`);
+  console.log(`로컬 서버 실행 중: http://${HOST}:${PORT}/api/chat , /api/market`);
 });
